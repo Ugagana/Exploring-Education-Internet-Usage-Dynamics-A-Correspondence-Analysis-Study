@@ -1,0 +1,34 @@
+libname myfiles 'P:\';
+filename bigrec "P:\Edu-Smk.csv" lrecl=65576;
+
+proc format;
+    value edu 1='currently_a_primary_school_pupil' 2='primary_school' 3='secondary_school' 4='college_or_bachelor_degree' 5='masters_degree' 6='doctorate_degree';
+    value smk 1='never_smoked' 2='tried_smoking' 3='former_smoker' 4='current_smoker';
+run;
+
+data sniff;
+    infile bigrec dsd dlm=',' firstobs=2;
+    input myid Education Smoking;
+    format Education edu.;
+    format Smoking smk.;
+    if currently_a_primary_school_pupil = 1 and primary_school = 0 and secondary_school = 0 and college_or_bachelor_degree = 0 and masters_degree = 0 and doctorate_degree = 0 then Education = 1;
+    if currently_a_primary_school_pupil = 0 and primary_school = 1 and secondary_school = 0 and college_or_bachelor_degree = 0 and masters_degree = 0 and doctorate_degree = 0 then Education = 2;
+    if currently_a_primary_school_pupil = 0 and primary_school = 0 and secondary_school = 1 and college_or_bachelor_degree = 0 and masters_degree = 0 and doctorate_degree = 0 then Education = 3;
+    if currently_a_primary_school_pupil = 0 and primary_school = 0 and secondary_school = 0 and college_or_bachelor_degree = 1 and masters_degree = 0 and doctorate_degree = 0 then Education = 4;
+    if currently_a_primary_school_pupil = 0 and primary_school = 0 and secondary_school = 0 and college_or_bachelor_degree = 0 and masters_degree = 1 and doctorate_degree = 0 then Education = 5;
+    if currently_a_primary_school_pupil = 0 and primary_school = 0 and secondary_school = 0 and college_or_bachelor_degree = 0 and masters_degree = 0 and doctorate_degree = 1 then Education = 6;
+    if never_smoked = 1 and tried_smoking = 0 and former_smoker = 0 and current_smoker = 0 then Smoking = 1;
+    if never_smoked = 0 and tried_smoking = 1 and former_smoker = 0 and current_smoker = 0 then Smoking = 2;
+    if never_smoked = 0 and tried_smoking = 0 and former_smoker = 1 and current_smoker = 0 then Smoking = 3;
+    if never_smoked = 0 and tried_smoking = 0 and former_smoker = 0 and current_smoker = 1 then Smoking = 4;
+run;
+
+proc corresp data=sniff all chi2p;
+    format Education edu.;
+    format Smoking smk.;
+    tables Education, Smoking;
+run;
+
+proc freq data=sniff;
+    tables Education*Smoking / crosslist stdres;
+run;
